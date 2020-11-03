@@ -1,12 +1,17 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser,PermissionsMixin, BaseUserManager
-
+from django.conf import settings
 
 class UserProfileManager(BaseUserManager):
-    """Manager for user profiles, this will override the default one provided by django"""
+    """Manager for creating user profiles, this will override the default one 
+    provided by django,to support our custom user model"""
 
     def create_user(self, email, name, password=None):
-        """Create a new user profile"""
+        """ Create a new user profile.
+        Default user model expects the user the model to have a username field.
+        We removed user name and replace with email, we need to override default create_user(), create_superuser
+
+        """
         if not email:
             raise ValueError('User must have an email address')
         # set to lowercase 
@@ -53,3 +58,17 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         """Return string representation of our user"""  
         return self.email
+
+
+class ProfileFeedItem(models.Model):
+    """Profile status update"""
+    user_profile = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE
+    )
+    status_text = models.CharField(max_length=255)
+    created_on = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        """Return the model as a string"""
+        return self.status_text
